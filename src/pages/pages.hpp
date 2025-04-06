@@ -2,7 +2,7 @@
 #define HOME_PAGE_H
 
 #include <SDL2/SDL.h>
-#include "../../clayman.hpp"
+#include "../../include/clayman.hpp"
 
 #include "../splitter.hpp"
 

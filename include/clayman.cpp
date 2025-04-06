@@ -1,7 +1,7 @@
 // #include <cstddef>
 // #include <iostream>
 #define CLAY_IMPLEMENTATION
-#include "include/clay.h"
+#include "clay.h"
 #include "clayman.hpp"
 
 static bool claymaninstancehasbeencreated = false;

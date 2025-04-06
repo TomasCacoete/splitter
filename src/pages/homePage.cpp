@@ -1,12 +1,10 @@
 #include <SDL2/SDL.h>
-#include "../../clayman.hpp"
+#include "../../include/clayman.hpp"
 
 #include "../splitter.hpp"
 
 Clay_RenderCommandArray homePage(SplitterData* splitterData){
     Clay_BeginLayout();
-
-    //printf("%d\n", splitterData->logo == NULL);
 
     CLAY({
         .id = CLAY_ID("Header"),

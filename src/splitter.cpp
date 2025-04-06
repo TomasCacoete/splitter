@@ -1,7 +1,7 @@
-#include "../clayman.hpp"
-#include "../include/sdl2/clay_renderer_SDL2.c"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "../include/clayman.hpp"
+#include "../include/sdl2/clay_renderer_SDL2.c"
 
 #include "styles/styles.hpp"
 #include "pages/pages.hpp"

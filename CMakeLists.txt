@@ -21,7 +21,7 @@ find_package(SDL2_image REQUIRED)
 
 file(GLOB PAGE_SOURCES "${SRC_DIR}/pages/*.cpp")
 file(GLOB VARIABLES_SOURCES "${SRC_DIR}/styles/*.cpp")
-add_executable(splitter ${SRC_DIR}/splitter.cpp ${PAGE_SOURCES} ${SRC_DIR}/assets/asset_loader.cpp ${VARIABLES_SOURCES} clayman.cpp)
+add_executable(splitter ${SRC_DIR}/splitter.cpp ${PAGE_SOURCES} ${SRC_DIR}/assets/asset_loader.cpp ${VARIABLES_SOURCES} include/clayman.cpp)
 
 set_target_properties(splitter PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SRC_OUTPUT_DIR})
 target_link_libraries(splitter PRIVATE 

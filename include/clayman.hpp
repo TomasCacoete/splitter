@@ -1,7 +1,7 @@
 #ifndef CLAY_MAN
 #define CLAY_MAN
 
-#include "include/clay.h"
+#include "clay.h"
 
 #include <cstddef>
 // #include <iostream>
