@@ -3,13 +3,18 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "./clay-video-demo.hpp"
+#include "styles/styles.hpp"
+#include "pages/pages.hpp"
+#include "assets/asset_loader.hpp"
+#include "splitter.hpp"
 
-SDL_Surface *sample_image;
+//#include "./clay-video-demo.hpp"
+const int FONT_ID_BODY_16 = 0;
+
+SDL_Surface *logo;
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s", errorData.errorText.chars);
 }
-
 
 struct ResizeRenderData_ {
     SDL_Window* window;
@@ -17,7 +22,7 @@ struct ResizeRenderData_ {
     int windowHeight;
     SDL_Renderer* renderer;
     SDL2_Font* fonts;
-    ClayVideoDemo_Data demoData;
+    SplitterData splitterData;
 };
 typedef struct ResizeRenderData_ ResizeRenderData;
 
@@ -29,7 +34,7 @@ int resizeRendering(void* userData, SDL_Event* event) {
         int windowHeight            = actualData->windowHeight;
         SDL_Renderer* renderer      = actualData->renderer;
         SDL2_Font* fonts            = actualData->fonts;
-        ClayVideoDemo_Data demoData = actualData->demoData;
+        SplitterData splitterData   = actualData->splitterData;
 
         SDL_GetWindowSize(window, &windowWidth, &windowHeight);
         Clay_SetLayoutDimensions((Clay_Dimensions) {
@@ -37,8 +42,8 @@ int resizeRendering(void* userData, SDL_Event* event) {
             (float)windowHeight 
         });
 
-        Clay_RenderCommandArray renderCommands = ClayVideoDemo_CreateLayout(&demoData);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        Clay_RenderCommandArray renderCommands = homePage(&splitterData);
+        SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL_RenderClear(renderer);
 
         Clay_SDL2_Render(renderer, renderCommands, fonts);
@@ -64,7 +69,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    TTF_Font *font = TTF_OpenFont("resources/Roboto-Regular.ttf", 16);
+    TTF_Font *font = TTF_OpenFont("assets/fonts/Roboto-Regular.ttf", 16);
     if (!font) {
         fprintf(stderr, "Error: could not load font: %s\n", TTF_GetError());
         return 1;
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
         .font = font,
     };
     
-    sample_image = IMG_Load("resources/sample.png");
+    
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
   
@@ -109,7 +114,8 @@ int main(int argc, char *argv[]) {
     Uint64 LAST = 0;
     double deltaTime = 0;
 
-    ClayVideoDemo_Data demoData = ClayVideoDemo_Initialize();
+    SplitterData splitterData;
+    load_assets(&splitterData);
 
     ResizeRenderData userData = {
         window, // SDL_Window*
@@ -117,7 +123,7 @@ int main(int argc, char *argv[]) {
         windowHeight, // int
         renderer, // SDL_Renderer*
         fonts, // SDL2_Font[1]
-        demoData, // CustomShit
+        splitterData
     };
 
     // add an event watcher that will render the screen while youre dragging the window to different sizes
@@ -165,12 +171,12 @@ int main(int argc, char *argv[]) {
             (float)windowWidth, (float)windowHeight
         });
 
-        Clay_RenderCommandArray renderCommands = ClayVideoDemo_CreateLayout(&demoData);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        Clay_RenderCommandArray renderCommands = homePage(&splitterData);
+        SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL_RenderClear(renderer);
 
         Clay_SDL2_Render(renderer, renderCommands, fonts);
-        
+
         SDL_RenderPresent(renderer);
     }
     quit:

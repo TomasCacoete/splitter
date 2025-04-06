@@ -18,7 +18,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
-add_executable(splitter ${SRC_DIR}/splitter.cpp ${SRC_DIR}/clay-video-demo.cpp clayman.cpp)
+
+file(GLOB PAGE_SOURCES "${SRC_DIR}/pages/*.cpp")
+file(GLOB VARIABLES_SOURCES "${SRC_DIR}/styles/*.cpp")
+add_executable(splitter ${SRC_DIR}/splitter.cpp ${PAGE_SOURCES} ${SRC_DIR}/assets/asset_loader.cpp ${VARIABLES_SOURCES} clayman.cpp)
+
 set_target_properties(splitter PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SRC_OUTPUT_DIR})
 target_link_libraries(splitter PRIVATE 
     SDL2::SDL2main
@@ -27,7 +31,8 @@ target_link_libraries(splitter PRIVATE
     SDL2_image::SDL2_image
 )
 
-file(COPY ${SRC_DIR}/resources DESTINATION ${SRC_OUTPUT_DIR})
+file(COPY ${SRC_DIR}/assets/images DESTINATION ${SRC_OUTPUT_DIR}/assets)
+file(COPY ${SRC_DIR}/assets/fonts DESTINATION ${SRC_OUTPUT_DIR}/assets)
 
 #rm -rf build/*
 #cmake -S . -B build -G "MinGW Makefiles"
