@@ -3,153 +3,62 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "./clay-video-demo.hpp"
 
 SDL_Surface *sample_image;
+void HandleClayErrors(Clay_ErrorData errorData) {
+    printf("%s", errorData.errorText.chars);
+}
 
-//User layout callback function, do not call Clay_BeginLayout() or Clay_EndLayout()
-void myLayout(ClayMan& clayMan){
 
-    static std::string theText = "Click the button to change the text.";
-    uint16_t bw = 5;
+struct ResizeRenderData_ {
+    SDL_Window* window;
+    int windowWidth;
+    int windowHeight;
+    SDL_Renderer* renderer;
+    SDL2_Font* fonts;
+    ClayVideoDemo_Data demoData;
+};
+typedef struct ResizeRenderData_ ResizeRenderData;
 
-    //A reusable configuration
-    Clay_TextElementConfig textConfig = {
-        .textColor = {255, 255, 255, 255},
-        .fontId = 0,
-        .fontSize = 20
-    };
+int resizeRendering(void* userData, SDL_Event* event) {
+    ResizeRenderData *actualData = (ResizeRenderData*)userData;
+    if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_EXPOSED) {
+        SDL_Window* window          = actualData->window;
+        int windowWidth             = actualData->windowWidth;
+        int windowHeight            = actualData->windowHeight;
+        SDL_Renderer* renderer      = actualData->renderer;
+        SDL2_Font* fonts            = actualData->fonts;
+        ClayVideoDemo_Data demoData = actualData->demoData;
 
-    //On-Click for Button element
-    if(clayMan.pointerOver("Button") & clayMan.mousePressed()){
-        theText = "Button has been clicked!";
+        SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+        Clay_SetLayoutDimensions((Clay_Dimensions) {
+            (float)windowWidth,
+            (float)windowHeight 
+        });
+
+        Clay_RenderCommandArray renderCommands = ClayVideoDemo_CreateLayout(&demoData);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        Clay_SDL2_Render(renderer, renderCommands, fonts);
+
+        SDL_RenderPresent(renderer);
     }
-
-    //Here we are using openElement(). We need to call closeElement() after children block
-    clayMan.openElement({
-        .id = clayMan.hashID("OuterContainer"),
-        .layout = {
-            .sizing = clayMan.expandXY(),
-            .padding = clayMan.padAll(16),
-            .childGap = 16,
-            .layoutDirection = CLAY_TOP_TO_BOTTOM,
-        },
-        .backgroundColor = {50, 50, 50, 255}
-    });{ //Children of OuterContainer are in this block. The block is not necessary, but helps with structure.
-
-        //Text Elements are self-contained
-        clayMan.textElement("The outers contaaaainer was made with openElement function and needs closed manually", textConfig);
-
-        //Here we are using the lambda method, we do not need to call closeElement()
-        clayMan.element(
-            {
-                .id = clayMan.hashID("Button"),
-                .layout = {
-                    .sizing = clayMan.fixedSize(100, 40),
-                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
-                },
-                .backgroundColor = clayMan.pointerOver("Button")? //ternary in-line config property
-                    Clay_Color{120, 120, 120, 255}
-                    : Clay_Color{100, 100, 100, 255}
-            },
-            [&]{ //children of "Button" are in this lambda
-                clayMan.textElement("Click Me", textConfig);
-            }
-        ); //do not call closeElement() for "Button"
-
-        clayMan.textElement(theText, textConfig);
-        
-        //Here is another manual element
-        clayMan.openElement( //we manually open the element
-            {
-                .id = clayMan.hashID("ManualElement"),
-                .layout = {
-                    .padding = clayMan.padXY(26, 16),
-                    .childGap = 16,
-                    .childAlignment = clayMan.centerXY()
-                },
-                .backgroundColor = {0,0,0,255}
-            }
-        );{//Children of "ManualElement" are in this block, the block is not necessary, but helps with structure
-            clayMan.textElement("This parent element was made manually.", textConfig);
-
-            //Another lambda element
-            clayMan.element(
-                {
-                    .id = clayMan.hashID("LambdaElement"),
-                    .layout = {.padding = clayMan.padAll(16)},
-                    .backgroundColor = {120,120,120,255}
-                },
-                [&]{
-                    clayMan.textElement("This element was made with the lambda method using element function.", textConfig);
-                }
-            );
-
-            //A classic macro element
-            CLAY({
-                .id = CLAY_ID("ClayElement"),
-                .layout = { 
-                    .padding = CLAY_PADDING_ALL(16), 
-                    .childAlignment = {
-                        .x = CLAY_ALIGN_X_CENTER, 
-                        .y = CLAY_ALIGN_Y_CENTER
-                    }
-                },
-                .backgroundColor =  (Clay_Hovered()? (Clay_Color){200,200,200,255}: (Clay_Color){100,100,100,255}),
-                .cornerRadius = {10,10,10,10},
-                .border = {
-                    .color = {123,123,0,255},
-                    .width = {bw, bw, bw, bw,0}
-                }
-            }){
-                CLAY_TEXT(CLAY_STRING("This element was made with the standard Clay macros inside a lambda element"), CLAY_TEXT_CONFIG(textConfig));
-            }
-        }
-        clayMan.closeElement(); //we manually close the "ManualElement" since closeElement() was used
-
-        clayMan.element(
-            {
-                .id = clayMan.hashID("AnotherElement"),
-                .layout = {
-                    .sizing = clayMan.expandX(),
-                    .padding = clayMan.padAll(16),
-                    .childAlignment = clayMan.centerXY()
-                },
-                .backgroundColor = {0,0,0,255},//{0,0,0,125},
-                .cornerRadius = {20,20,20,20},
-                .border = {
-                    .color = {123,123,0,255},
-                    .width = {bw, bw, bw, bw,0}
-                }
-            },
-            [&]{
-                clayMan.element(
-                    {
-                        .layout = {
-                            .padding = clayMan.padAll(16)
-                        },
-                        .backgroundColor = {0,0,0,255}//{255,255,255,123}
-                    },
-                    [&]{
-                        clayMan.textElement("This element was made using the lambda method", textConfig);
-                    }
-                );
-            }
-        );
-        
-    } clayMan.closeElement(); //We close the outer container manually, since openElement() was used.
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
-    bool running = true;
-
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Error: could not initialize SDL: %s\n", SDL_GetError());
         return 1;
     }
+
     if (TTF_Init() < 0) {
         fprintf(stderr, "Error: could not initialize TTF: %s\n", TTF_GetError());
         return 1;
     }
+    
     if (IMG_Init(IMG_INIT_PNG) < 0) {
         fprintf(stderr, "Error: could not initialize IMG: %s\n", IMG_GetError());
         return 1;
@@ -162,39 +71,67 @@ int main(int argc, char *argv[]) {
     }
 
     SDL2_Font fonts[1] = {};
-
-    fonts[0] = (SDL2_Font) {
-        .fontId = 0,
+    fonts[FONT_ID_BODY_16] = (SDL2_Font) {
+        .fontId = FONT_ID_BODY_16,
         .font = font,
     };
-
+    
     sample_image = IMG_Load("resources/sample.png");
-
-    int windowWidth = 800;
-    int windowHeight = 600;
-    ClayMan clayMan = ClayMan(windowWidth, windowHeight, SDL2_MeasureText, &fonts);
-
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
-    SDL_SetHint(SDL_HINT_LOGGING, "0");
+  
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl"); //for antialiasing
-    window = SDL_CreateWindow("SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, clayMan.getWindowWidth(), clayMan.getWindowHeight(), SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8); //for antialiasing
+    window = SDL_CreateWindow("SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4); //for antialiasing
     bool enableVsync = false;
-    if(enableVsync){ renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);}
-    else{renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);}
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    if(enableVsync){
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC); //"SDL_RENDERER_ACCELERATED" is for antialiasing
+    
+    } else{
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    }
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); //for alpha blending
 
+    uint64_t totalMemorySize = Clay_MinMemorySize();
+    Clay_Arena clayMemory = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
+
+    int windowWidth = 0;
+    int windowHeight = 0;
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    Clay_Initialize(clayMemory, (Clay_Dimensions) {
+        (float)windowWidth,
+        (float)windowHeight
+    },(Clay_ErrorHandler) { HandleClayErrors });
+
+    Clay_SetMeasureTextFunction(SDL2_MeasureText, &fonts);
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
     double deltaTime = 0;
 
-    while (running) {
+    ClayVideoDemo_Data demoData = ClayVideoDemo_Initialize();
+
+    ResizeRenderData userData = {
+        window, // SDL_Window*
+        windowWidth, // int
+        windowHeight, // int
+        renderer, // SDL_Renderer*
+        fonts, // SDL2_Font[1]
+        demoData, // CustomShit
+    };
+
+    // add an event watcher that will render the screen while youre dragging the window to different sizes
+    SDL_AddEventWatch(resizeRendering, &userData);
+
+    while (true) {
         Clay_Vector2 scrollDelta = {};
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-                case SDL_QUIT: { running = false; }
+                case SDL_QUIT: {
+                    goto quit;
+                }
+
                 case SDL_MOUSEWHEEL: {
                     scrollDelta.x = event.wheel.x;
                     scrollDelta.y = event.wheel.y;
@@ -202,31 +139,45 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        if(!running){break;}
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
         deltaTime = (double)((NOW - LAST)*1000 / (double)SDL_GetPerformanceFrequency() );
+        //printf("%f\n", deltaTime);
 
-        int mouseX = 0, mouseY = 0;
+        double fps = 1000.0 / deltaTime;
+        char title[128];
+        snprintf(title, sizeof(title), "FPS: %.2f", fps);
+        SDL_SetWindowTitle(window, title);
+
+        int mouseX = 0;
+        int mouseY = 0;
         Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+        Clay_Vector2 mousePosition = (Clay_Vector2){ (float)mouseX, (float)mouseY };
+        Clay_SetPointerState(mousePosition, mouseState & SDL_BUTTON(1));
+        Clay_UpdateScrollContainers(
+            true,
+            (Clay_Vector2) { scrollDelta.x, scrollDelta.y },
+            deltaTime
+        );
+        
         SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+        Clay_SetLayoutDimensions((Clay_Dimensions) {
+            (float)windowWidth, (float)windowHeight
+        });
 
-        clayMan.updateClayState(windowWidth, windowHeight, mouseX, mouseY, scrollDelta.x, scrollDelta.y, deltaTime, mouseState & SDL_BUTTON(1));
-        clayMan.beginLayout();
-        myLayout(clayMan);
-        Clay_RenderCommandArray renderCommands = clayMan.endLayout();
-
+        Clay_RenderCommandArray renderCommands = ClayVideoDemo_CreateLayout(&demoData);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
+
         Clay_SDL2_Render(renderer, renderCommands, fonts);
+        
         SDL_RenderPresent(renderer);
     }
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    IMG_Quit();
-    TTF_Quit();
-    SDL_Quit();
-    return 0;
+    quit:
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        IMG_Quit();
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
 }
-

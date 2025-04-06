@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
-add_executable(splitter ${SRC_DIR}/splitter.cpp clayman.cpp)
+add_executable(splitter ${SRC_DIR}/splitter.cpp ${SRC_DIR}/clay-video-demo.cpp clayman.cpp)
 set_target_properties(splitter PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SRC_OUTPUT_DIR})
 target_link_libraries(splitter PRIVATE 
     SDL2::SDL2main
