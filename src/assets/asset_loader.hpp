@@ -3,6 +3,6 @@
 
 #include "../splitter.hpp"
 
-void load_assets(SplitterData* splitterData);
+int load_assets(SplitterData* splitterData, SDL2_Font* fonts);
 
 #endif

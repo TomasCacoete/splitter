@@ -8,10 +8,7 @@
 #include "assets/asset_loader.hpp"
 #include "splitter.hpp"
 
-//#include "./clay-video-demo.hpp"
-const int FONT_ID_BODY_16 = 0;
 
-SDL_Surface *logo;
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s", errorData.errorText.chars);
 }
@@ -68,18 +65,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error: could not initialize IMG: %s\n", IMG_GetError());
         return 1;
     }
-
-    TTF_Font *font = TTF_OpenFont("assets/fonts/Roboto-Regular.ttf", 16);
-    if (!font) {
-        fprintf(stderr, "Error: could not load font: %s\n", TTF_GetError());
-        return 1;
-    }
-
-    SDL2_Font fonts[1] = {};
-    fonts[FONT_ID_BODY_16] = (SDL2_Font) {
-        .fontId = FONT_ID_BODY_16,
-        .font = font,
-    };
     
     
     SDL_Window *window = NULL;
@@ -88,7 +73,7 @@ int main(int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl"); //for antialiasing
     window = SDL_CreateWindow("SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4); //for antialiasing
-    bool enableVsync = false;
+    bool enableVsync = true;
     if(enableVsync){
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC); //"SDL_RENDERER_ACCELERATED" is for antialiasing
     
@@ -109,13 +94,13 @@ int main(int argc, char *argv[]) {
         (float)windowHeight
     },(Clay_ErrorHandler) { HandleClayErrors });
 
-    Clay_SetMeasureTextFunction(SDL2_MeasureText, &fonts);
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
     double deltaTime = 0;
 
     SplitterData splitterData;
-    load_assets(&splitterData);
+    SDL2_Font fonts[2];
+    load_assets(&splitterData, fonts);
 
     ResizeRenderData userData = {
         window, // SDL_Window*
@@ -125,6 +110,9 @@ int main(int argc, char *argv[]) {
         fonts, // SDL2_Font[1]
         splitterData
     };
+
+    
+    Clay_SetMeasureTextFunction(SDL2_MeasureText, &fonts);
 
     // add an event watcher that will render the screen while youre dragging the window to different sizes
     SDL_AddEventWatch(resizeRendering, &userData);
