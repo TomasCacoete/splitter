@@ -9,18 +9,28 @@ void homepageCardComponent(SDL_Surface* img, Clay_String text){
     CLAY({.id = CLAY_SID(text),
         .layout = {
             .sizing = {
-                .width = CLAY_SIZING_FIT(),
-                .height = CLAY_SIZING_GROW(0),
+                .width = CLAY_SIZING_FIXED(184),
+                .height = CLAY_SIZING_GROW(0, 216),
             },
             .padding = { .left = 32, .right = 32, .top = 24, .bottom = 24 },
             .childGap = 24,
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
             .layoutDirection = CLAY_TOP_TO_BOTTOM
         },
-        .backgroundColor = {255,255,0,255}
+        .cornerRadius = CLAY_CORNER_RADIUS(20),
+        .border = { .color = Clay_Hovered() ? hover_color : font_color, .width = { 3, 3, 3, 3, 0 } }
     }){
+        CLAY({.id = CLAY_ID_LOCAL("cardImage"),
+            .layout = {
+                .sizing = {
+                    .width = (float)img->w,
+                    .height = (float)img->h
+                }
+            },
+            .image = { .imageData = img, .sourceDimensions = {(float)img->w, (float)img->h} }
+        }){};
 
-        CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = font_color, .fontId = FONT_BOLD_40 }));
+        CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = font_color, .fontId = FONT_BOLD_24, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
     }
 }
 
@@ -40,7 +50,7 @@ Clay_RenderCommandArray homePage(SplitterData* splitterData){
         },
     }){
         //header
-        CLAY({.id = CLAY_ID("header"),
+        CLAY({.id = CLAY_ID_LOCAL("header"),
             .layout = {
                 .sizing = {
                     .width = CLAY_SIZING_GROW(0),
@@ -51,7 +61,7 @@ Clay_RenderCommandArray homePage(SplitterData* splitterData){
             },
         }){
             CLAY({
-                .id = CLAY_ID("logo"),
+                .id = CLAY_ID_LOCAL("logo"),
                 .layout = {
                     .sizing = {
                         .width = (float)splitterData->logo->w,
@@ -66,18 +76,18 @@ Clay_RenderCommandArray homePage(SplitterData* splitterData){
 
         CLAY_TEXT(CLAY_STRING("Olá! O que pretendes fazer?"), CLAY_TEXT_CONFIG({ .textColor = font_color, .fontId = FONT_40 }));
 
-        CLAY({.id = CLAY_ID("cardContainer"),
+        CLAY({.id = CLAY_ID_LOCAL("cardsContainer"),
             .layout = {
                 .sizing = {
                     .width = CLAY_SIZING_FIT(),
                     .height = CLAY_SIZING_GROW(0),
                 },
                 .childGap = 64,
+                .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }
             },
         }){
-
-            homepageCardComponent(nullptr, CLAY_STRING("Boas"));
-            homepageCardComponent(nullptr, CLAY_STRING("Boass"));
+            homepageCardComponent(splitterData->pdfImage, CLAY_STRING("Cortar um PDF"));
+            homepageCardComponent(splitterData->videoImage, CLAY_STRING("Cortar um vídeo"));
         }
     };
 

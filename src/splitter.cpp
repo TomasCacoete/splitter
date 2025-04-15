@@ -19,7 +19,7 @@ struct ResizeRenderData_ {
     int windowHeight;
     SDL_Renderer* renderer;
     SDL2_Font* fonts;
-    SplitterData splitterData;
+    SplitterData* splitterData;
 };
 typedef struct ResizeRenderData_ ResizeRenderData;
 
@@ -31,7 +31,7 @@ int resizeRendering(void* userData, SDL_Event* event) {
         int windowHeight            = actualData->windowHeight;
         SDL_Renderer* renderer      = actualData->renderer;
         SDL2_Font* fonts            = actualData->fonts;
-        SplitterData splitterData   = actualData->splitterData;
+        SplitterData* splitterData  = actualData->splitterData;
 
         SDL_GetWindowSize(window, &windowWidth, &windowHeight);
         Clay_SetLayoutDimensions((Clay_Dimensions) {
@@ -39,7 +39,7 @@ int resizeRendering(void* userData, SDL_Event* event) {
             (float)windowHeight 
         });
 
-        Clay_RenderCommandArray renderCommands = homePage(&splitterData);
+        Clay_RenderCommandArray renderCommands = homePage(splitterData);
         SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL_RenderClear(renderer);
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     double deltaTime = 0;
 
     SplitterData splitterData;
-    SDL2_Font fonts[2];
+    SDL2_Font fonts[3];
     load_assets(&splitterData, fonts);
 
     ResizeRenderData userData = {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         windowHeight, // int
         renderer, // SDL_Renderer*
         fonts, // SDL2_Font[1]
-        splitterData
+        &splitterData
     };
 
     

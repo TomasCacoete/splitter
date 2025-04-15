@@ -5,8 +5,10 @@
 
 extern Clay_Color background_color;
 extern Clay_Color font_color;
+extern Clay_Color hover_color;
 
 extern uint16_t FONT_40;
 extern uint16_t FONT_BOLD_40;
+extern uint16_t FONT_BOLD_24;
 
 #endif

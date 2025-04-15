@@ -30,8 +30,24 @@ int load_assets(SplitterData* splitterData, SDL2_Font* fonts){
         return 1;
     }
 
+    splitterData->pdfImage = IMG_Load("assets/images/pdfImage.png");
+    if(!splitterData->pdfImage){
+        fprintf(stderr, "Error: Couldn't read pdfImage.png: %s\n", IMG_GetError());
+        return 1;
+    }
+
+    splitterData->videoImage = IMG_Load("assets/images/videoImage.png");
+    if(!splitterData->videoImage){
+        fprintf(stderr, "Error: Couldn't read videoImage.png: %s\n", IMG_GetError());
+        return 1;
+    }
+
     //Loading fonts
     if(load_font(fonts, "calibri-regular.ttf", 40, FONT_40) != 0){
+        return 1;
+    }
+
+    if(load_font(fonts, "calibri-bold.ttf", 25, FONT_BOLD_24) != 0){
         return 1;
     }
 
