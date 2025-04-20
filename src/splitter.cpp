@@ -3,11 +3,25 @@
 #include "../include/clayman.hpp"
 #include "../include/sdl2/clay_renderer_SDL2.c"
 
+#include "splitter.hpp"
+#include "assets/asset_loader.hpp"
 #include "styles/styles.hpp"
 #include "pages/pages.hpp"
-#include "assets/asset_loader.hpp"
-#include "splitter.hpp"
 
+#include <poppler/cpp/poppler-document.h>
+
+Clay_RenderCommandArray renderPage(SplitterData *splitterData){
+    switch(splitterData->currentPage){
+        case homePageId:
+            return homePage(splitterData);
+
+        case pdfSplitterPageId:
+            return pdfSplitterPage(splitterData);
+            
+        default:
+            return homePage(splitterData);
+    }
+}
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s", errorData.errorText.chars);
@@ -39,7 +53,7 @@ int resizeRendering(void* userData, SDL_Event* event) {
             (float)windowHeight 
         });
 
-        Clay_RenderCommandArray renderCommands = homePage(splitterData);
+        Clay_RenderCommandArray renderCommands = renderPage(splitterData);
         SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL_RenderClear(renderer);
 
@@ -47,6 +61,38 @@ int resizeRendering(void* userData, SDL_Event* event) {
 
         SDL_RenderPresent(renderer);
     }
+    return 0;
+}
+
+int handlePdfPageTextInput(void* userData, SDL_Event* event) {
+    ResizeRenderData *data = (ResizeRenderData*)userData;
+    if(data->splitterData->currentPage != 1){
+        return 0;
+    }
+
+    char* sizeBuffer = data->splitterData->pdfPageData.sizeBuffer;
+
+    if(event->type == SDL_TEXTINPUT){
+        const char* txt = event->text.text;
+
+        if (txt[0] >= '0' && txt[0] <= '9' && txt[1] == '\0') {
+            if(strlen(sizeBuffer) < sizeof(data->splitterData->pdfPageData.sizeBuffer) - 1){
+                strcat(sizeBuffer, txt);
+            }
+        }
+    }
+
+    if (event->type == SDL_KEYDOWN) {
+        SDL_Keycode key = event->key.keysym.sym;
+
+        if (key == SDLK_BACKSPACE) {
+            size_t len = strlen(sizeBuffer);
+            if (len > 0) {
+                sizeBuffer[len - 1] = '\0';
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -65,7 +111,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error: could not initialize IMG: %s\n", IMG_GetError());
         return 1;
     }
-    
     
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
@@ -98,9 +143,14 @@ int main(int argc, char *argv[]) {
     Uint64 LAST = 0;
     double deltaTime = 0;
 
-    SplitterData splitterData;
     SDL2_Font fonts[3];
+
+    SplitterData splitterData;
     load_assets(&splitterData, fonts);
+    splitterData.currentPage = homePageId;
+    splitterData.pdfPageData.editingSize = false;
+    strcpy(splitterData.pdfPageData.sizeBuffer, "20");
+    
 
     ResizeRenderData userData = {
         window, // SDL_Window*
@@ -116,6 +166,9 @@ int main(int argc, char *argv[]) {
 
     // add an event watcher that will render the screen while youre dragging the window to different sizes
     SDL_AddEventWatch(resizeRendering, &userData);
+    SDL_AddEventWatch(handlePdfPageTextInput, &userData);
+
+    SDL_StartTextInput();
 
     while (true) {
         Clay_Vector2 scrollDelta = {};
@@ -159,7 +212,7 @@ int main(int argc, char *argv[]) {
             (float)windowWidth, (float)windowHeight
         });
 
-        Clay_RenderCommandArray renderCommands = homePage(&splitterData);
+        Clay_RenderCommandArray renderCommands = renderPage(&splitterData);
         SDL_SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL_RenderClear(renderer);
 
@@ -168,6 +221,7 @@ int main(int argc, char *argv[]) {
         SDL_RenderPresent(renderer);
     }
     quit:
+        SDL_StopTextInput();
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         IMG_Quit();

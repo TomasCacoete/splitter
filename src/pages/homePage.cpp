@@ -4,7 +4,7 @@
 #include "../splitter.hpp"
 #include "../styles/styles.hpp"
 
-void homepageCardComponent(SDL_Surface* img, Clay_String text){
+void homepageCardComponent(SplitterData* splitterData, SDL_Surface* img, Clay_String text){
 
     CLAY({.id = CLAY_SID(text),
         .layout = {
@@ -20,6 +20,13 @@ void homepageCardComponent(SDL_Surface* img, Clay_String text){
         .cornerRadius = CLAY_CORNER_RADIUS(20),
         .border = { .color = Clay_Hovered() ? hover_color : font_color, .width = { 3, 3, 3, 3, 0 } }
     }){
+        Clay_OnHover([](Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData){
+            if(pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME){
+                SplitterData* data = reinterpret_cast<SplitterData*>(userData);
+                data->currentPage = pdfSplitterPageId;
+            }
+        }, reinterpret_cast<intptr_t>(splitterData));
+
         CLAY({.id = CLAY_ID_LOCAL("cardImage"),
             .layout = {
                 .sizing = {
@@ -86,8 +93,8 @@ Clay_RenderCommandArray homePage(SplitterData* splitterData){
                 .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }
             },
         }){
-            homepageCardComponent(splitterData->pdfImage, CLAY_STRING("Cortar um PDF"));
-            homepageCardComponent(splitterData->videoImage, CLAY_STRING("Cortar um vídeo"));
+            homepageCardComponent(splitterData, splitterData->pdfImage, CLAY_STRING("Cortar um PDF"));
+            homepageCardComponent(splitterData, splitterData->videoImage, CLAY_STRING("Cortar um vídeo"));
         }
     };
 

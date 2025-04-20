@@ -7,5 +7,6 @@
 #include "../splitter.hpp"
 
 Clay_RenderCommandArray homePage(SplitterData* splitterData);
+Clay_RenderCommandArray pdfSplitterPage(SplitterData* splitterData);
 
 #endif

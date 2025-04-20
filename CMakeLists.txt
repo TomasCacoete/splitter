@@ -14,14 +14,26 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
 
+include_directories("/mingw64/include/poppler")
+link_directories("/mingw64/lib")
+
 # SDL2 setup
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
 
+file(GLOB ELEMENTS_SOURCES "${SRC_DIR}/elements/*.cpp")
 file(GLOB PAGE_SOURCES "${SRC_DIR}/pages/*.cpp")
 file(GLOB VARIABLES_SOURCES "${SRC_DIR}/styles/*.cpp")
-add_executable(splitter ${SRC_DIR}/splitter.cpp ${PAGE_SOURCES} ${SRC_DIR}/assets/asset_loader.cpp ${VARIABLES_SOURCES} include/clayman.cpp)
+
+add_executable(splitter
+    ${SRC_DIR}/splitter.cpp
+    ${PAGE_SOURCES}
+    ${ELEMENTS_SOURCES}
+    ${SRC_DIR}/assets/asset_loader.cpp
+    ${VARIABLES_SOURCES}
+    include/clayman.cpp
+)
 
 set_target_properties(splitter PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SRC_OUTPUT_DIR})
 target_link_libraries(splitter PRIVATE 
@@ -29,6 +41,7 @@ target_link_libraries(splitter PRIVATE
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     SDL2_image::SDL2_image
+    poppler
 )
 
 file(COPY ${SRC_DIR}/assets/images DESTINATION ${SRC_OUTPUT_DIR}/assets)
