@@ -13,10 +13,6 @@ set(SRC_OUTPUT_DIR ${CMAKE_BINARY_DIR}/src)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
-
-include_directories("/mingw64/include/poppler")
-link_directories("/mingw64/lib")
-
 # SDL2 setup
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
@@ -41,7 +37,6 @@ target_link_libraries(splitter PRIVATE
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     SDL2_image::SDL2_image
-    poppler
 )
 
 file(COPY ${SRC_DIR}/assets/images DESTINATION ${SRC_OUTPUT_DIR}/assets)

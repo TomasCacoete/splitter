@@ -8,8 +8,6 @@
 #include "styles/styles.hpp"
 #include "pages/pages.hpp"
 
-#include <poppler/cpp/poppler-document.h>
-
 Clay_RenderCommandArray renderPage(SplitterData *splitterData){
     switch(splitterData->currentPage){
         case homePageId:
@@ -66,7 +64,7 @@ int resizeRendering(void* userData, SDL_Event* event) {
 
 int handlePdfPageTextInput(void* userData, SDL_Event* event) {
     ResizeRenderData *data = (ResizeRenderData*)userData;
-    if(data->splitterData->currentPage != 1){
+    if(data->splitterData->currentPage != 1 || !data->splitterData->pdfPageData.editingSize){
         return 0;
     }
 
@@ -82,7 +80,7 @@ int handlePdfPageTextInput(void* userData, SDL_Event* event) {
         }
     }
 
-    if (event->type == SDL_KEYDOWN) {
+    if(event->type == SDL_KEYDOWN){
         SDL_Keycode key = event->key.keysym.sym;
 
         if (key == SDLK_BACKSPACE) {
@@ -189,7 +187,7 @@ int main(int argc, char *argv[]) {
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
         deltaTime = (double)((NOW - LAST)*1000 / (double)SDL_GetPerformanceFrequency() );
-        //printf("%f\n", deltaTime);
+        userData.splitterData->deltaTime = deltaTime;
 
         double fps = 1000.0 / deltaTime;
         char title[128];

@@ -9,6 +9,8 @@ struct pdfSplitterData {
 };
 
 struct SplitterData {
+    double deltaTime;
+
     //Routing
     uint8_t currentPage;
 
